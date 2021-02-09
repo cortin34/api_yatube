@@ -17,15 +17,60 @@ class TestPostAPI:
     def test_post_not_auth(self, client, post):
         response = client.get('/api/v1/posts/')
 
-        assert response.status_code == 401, (
-            'Проверьте, что `/api/v1/posts/` при запросе без токена возвращаете статус 401'
+        assert response.status_code != 401, (
+            'Проверьте, что `/api/v1/posts/` доступен для чтения неавторизованному пользователю'
+        )
+        assert response.status_code == 200, (
+            'Проверьте, что `/api/v1/posts/` доступен для чтения неавторизованному пользователю'
+        )
+        assert response.status_code != 500, (
+            'Проверьте, что `/api/v1/posts/` не вызывает ошибок на стороне сервера'
         )
 
     @pytest.mark.django_db(transaction=True)
-    def test_posts_get(self, user_client, post, another_post):
+    def test_posts_auth_get(self, user_client, post, another_post):
         response = user_client.get('/api/v1/posts/')
         assert response.status_code == 200, (
             'Проверьте, что при GET запросе `/api/v1/posts/` с токеном авторизации возвращаетсся статус 200'
+        )
+
+        test_data = response.json()
+        assert type(test_data) == list, (
+            'Проверьте, что при GET запросе на `/api/v1/posts/` возвращается список'
+        )
+
+        assert len(test_data) == Post.objects.count(), (
+            'Проверьте, что при GET запросе на `/api/v1/posts/` возвращается весь список статей'
+        )
+
+        post = Post.objects.all()[0]
+        test_post = test_data[0]
+        assert 'id' in test_post, (
+            'Проверьте, что добавили `id` в список полей `fields` сериализатора модели Post'
+        )
+        assert 'text' in test_post, (
+            'Проверьте, что добавили `text` в список полей `fields` сериализатора модели Post'
+        )
+        assert 'author' in test_post, (
+            'Проверьте, что добавили `author` в список полей `fields` сериализатора модели Post'
+        )
+        assert 'pub_date' in test_post, (
+            'Проверьте, что добавили `pub_date` в список полей `fields` сериализатора модели Post'
+        )
+        assert test_post['author'] == post.author.username, (
+            'Проверьте, что `author` сериализатора модели Post возвращает имя пользователя'
+        )
+
+        assert test_post['id'] == post.id, (
+            'Проверьте, что при GET запросе на `/api/v1/posts/` возвращается весь список статей'
+        )
+
+    @pytest.mark.django_db(transaction=True)
+    def test_posts_get(self, client, post, another_post):
+        response = client.get('/api/v1/posts/')
+        assert response.status_code == 200, (
+            'Проверьте, что при GET запросе `/api/v1/posts/` '
+            'для неавторизованного пользователя возвращается статус 200'
         )
 
         test_data = response.json()
@@ -61,7 +106,7 @@ class TestPostAPI:
         )
 
     @pytest.mark.django_db(transaction=True)
-    def test_post_create(self, user_client, user, another_user):
+    def test_post_auth_create(self, user_client, user, another_user):
         post_count = Post.objects.count()
 
         data = {}
@@ -92,6 +137,20 @@ class TestPostAPI:
         )
 
     @pytest.mark.django_db(transaction=True)
+    def test_post_unauth_create(self, client, user, another_user):
+        posts_conut = Post.objects.count()
+
+        data = {'author': another_user.id, 'text': 'Статья номер 3'}
+        response = client.post('/api/v1/posts/', data=data)
+        assert response.status_code == 401, (
+            'Проверьте, что при POST запросе на `/api/v1/posts/` неавторизованному пользователю возвращается статус 401'
+        )
+
+        assert posts_conut == Post.objects.count(), (
+            'Проверьте, что при POST запросе на `/api/v1/posts/` неавторизованный пользователь не может создать статью'
+        )
+
+    @pytest.mark.django_db(transaction=True)
     def test_post_get_current(self, user_client, post, user):
         response = user_client.get(f'/api/v1/posts/{post.id}/')
 
@@ -115,7 +174,8 @@ class TestPostAPI:
                                      data={'text': 'Поменяли текст статьи'})
 
         assert response.status_code == 200, (
-            'Проверьте, что при PATCH запросе `/api/v1/posts/{id}/` возвращаете статус 200'
+            'Проверьте, что при PATCH запросе `/api/v1/posts/{id}/` '
+            'для авторизованного пользователя возвращаете статус 200'
         )
 
         test_post = Post.objects.filter(id=post.id).first()
@@ -136,7 +196,7 @@ class TestPostAPI:
         )
 
     @pytest.mark.django_db(transaction=True)
-    def test_post_delete_current(self, user_client, post, another_post):
+    def test_post_auth_delete_current(self, user_client, post, another_post):
         response = user_client.delete(f'/api/v1/posts/{post.id}/')
 
         assert response.status_code == 204, (
@@ -154,3 +214,19 @@ class TestPostAPI:
         assert response.status_code == 403, (
             'Проверьте, что при DELETE запросе `/api/v1/posts/{id}/` для не своей статьи возвращаете статус 403'
         )
+
+    @pytest.mark.django_db(transaction=True)
+    def test_post_unauth_delete_current(self, client, post, another_post):
+        post_count = Post.objects.count()
+        response = client.delete(f'/api/v1/posts/{post.id}/')
+
+        assert response.status_code == 401, (
+            'Проверьте, что при DELETE запросе `/api/v1/posts/{id}/` '
+            'неавторизованному пользователю возвращаете статус 401'
+        )
+
+        assert post_count == Post.objects.count(), (
+            'Проверьте, что при DELETE запросе `/api/v1/posts/{id}/` '
+            'неавторизованный пользователь не может удалить статью'
+        )
+
