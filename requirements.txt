@@ -1,6 +1,7 @@
 pytest-django
+pytest-pythonpath==0.7.3
 requests
 pillow
 sorl-thumbnail
-django
+django==2.2.6
 djangorestframework
