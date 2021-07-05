@@ -20,17 +20,6 @@ class TestAuthAPI:
             "содержится 'rest_framework.authentication.TokenAuthentication'"
         )
 
-        assert 'DEFAULT_PERMISSION_CLASSES' in settings.REST_FRAMEWORK, (
-            'Проверьте, что добавили `DEFAULT_PERMISSION_CLASSES` в `REST_FRAMEWORK` файла `settings.py`'
-        )
-        assert (
-                'rest_framework.permissions.IsAuthenticatedOrReadOnly' in
-                settings.REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES']
-        ), (
-            "Проверьте, что в списке значения `DEFAULT_PERMISSION_CLASSES` в `REST_FRAMEWORK` "
-            "содержится 'rest_framework.permissions.IsAuthenticatedOrReadOnly'"
-        )
-
     @pytest.mark.django_db(transaction=True)
     def test_auth(self, client, user):
 
