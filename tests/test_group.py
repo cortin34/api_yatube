@@ -52,8 +52,8 @@ class TestGroupAPI:
         data = {'title': 'Группа  номер 3'}
         response = user_client.post('/api/v1/groups/', data=data)
         assert response.status_code == 405, (
-            'Убедитесь, что группу можно создавать только через админку, '
-            'и при попытке создать ее через API, возвращается статус 405'
+            'Убедитесь, что создание группы недоступно через API, '
+            'и при попытке сделать это, возвращается статус 405'
         )
 
     @pytest.mark.django_db(transaction=True)
