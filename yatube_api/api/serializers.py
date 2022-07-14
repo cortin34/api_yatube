@@ -7,7 +7,8 @@ from posts.models import Group, Post, Comment
 class PostSerializer(serializers.ModelSerializer):
     group = serializers.SlugRelatedField(queryset=Group.objects.all(),
                                          slug_field='slug', required=False)
-    author = serializers.SlugRelatedField(slug_field='username', read_only=True)
+    author = serializers.SlugRelatedField(
+        slug_field='username', read_only=True)
 
     class Meta:
         model = Post
@@ -15,19 +16,17 @@ class PostSerializer(serializers.ModelSerializer):
         read_only_fields = ('author',)
 
 
-
 class GroupSerializer(serializers.ModelSerializer):
-    #posts = serializers.StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Group
         fields = ('id', 'title', 'slug', 'description', 'posts')
 
 
-
 class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(slug_field='username', read_only=True)
-    
+    author = serializers.SlugRelatedField(
+        slug_field='username', read_only=True)
+
     class Meta:
         model = Comment
         fields = ('id', 'author', 'post', 'text', 'created')
