@@ -1,7 +1,8 @@
 from xml.etree.ElementTree import Comment
-from rest_framework import serializers
 
-from posts.models import Group, Post, Comment
+from posts.models import Comment, Group, Post
+
+from rest_framework import serializers
 
 
 class PostSerializer(serializers.ModelSerializer):
