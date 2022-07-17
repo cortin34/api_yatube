@@ -14,6 +14,6 @@ router.register(r'posts/(?P<post_id>\d+)/comments',
 router.register('groups', GroupViewSet)
 
 urlpatterns = [
-    path('api/v1/', include(router.urls)),
-    path('api/v1/api-token-auth/', views.obtain_auth_token),
+    path('v1/', include(router.urls)),
+    path('v1/api-token-auth/', views.obtain_auth_token),
 ]

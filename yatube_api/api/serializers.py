@@ -1,8 +1,8 @@
 from xml.etree.ElementTree import Comment
 
-from posts.models import Comment, Group, Post
-
 from rest_framework import serializers
+
+from posts.models import Comment, Group, Post
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -13,7 +13,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('id', 'text', 'pub_date', 'author', 'image', 'group')
+        fields = ('__all__')
         read_only_fields = ('author',)
 
 
@@ -21,7 +21,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Group
-        fields = ('id', 'title', 'slug', 'description', 'posts')
+        fields = ('__all__')
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -30,4 +30,4 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ('id', 'author', 'post', 'text', 'created')
+        fields = ('__all__')
